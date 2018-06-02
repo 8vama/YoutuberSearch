@@ -4,11 +4,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Youtube Influencer Search</title>
+    <title></title>
 
 </head>
 <body>
 
+<h1>Youtube Influencer Search</h1>
 <p>Using the Youtube Data API to get a list of gamers who has posted in the last month and has a subscribers count between 10k and 100k.</p>
 
 <h2>Prerequisites</h2>
