@@ -11,6 +11,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 
+from googleSheetsAPISample import write_values
+from extractEmail import get_emails
+
 # The CLIENT_SECRETS_FILE variable specifies the name of a file that contains
 # the OAuth 2.0 information for this application, including its client_id and
 # client_secret.
@@ -80,7 +83,7 @@ def remove_empty_kwargs(**kwargs):
         good_kwargs[key] = value
   return good_kwargs
 
-def search_list_by_keyword(client, f, name_id_dict, **kwargs):
+def search_list_by_keyword(client, name_id_dict, **kwargs):
   # return nextPageToken
   # updates name_id_dict
 
@@ -115,29 +118,35 @@ def get_video_url(data, name_id_dict):
 
 
 
-def filter_by_subscriber_count(name_id_dict):
-  # add the entries w followers between 10k and 100k to the result string
-
+def id_to_channel_url(id_str):
   channel_temp = u"https://www.youtube.com/channel/"
   result_str = u""
 
+  url = channel_temp + id_str + u"/about"
+  result_str += url
+  result_str.encode('utf-8')
+  return result_str
+
+def filter_by_subscriber_count(name_id_dict):
+  # return: new_dict: key- youtuber id, value- subscribers count
+
+  new_dict = {}
 
   for key, value in name_id_dict.items():
 
     subscriberCount = subscribers_count_by_channel_id(client, 
       part='statistics',
       id=value)
-
     #print(subscriberCount)
-
     if int(subscriberCount) >= 10000 and int(subscriberCount) <= 100000:
+      new_dict[value]=int(subscriberCount)
 
-      url = channel_temp + value + u"/about"
-      result_str += key + u"," + subscriberCount + u"," + url + u"\n"
+      #url = channel_temp + value + u"/about"
+      #result_str += key + u"," + subscriberCount + u"," + url + u"\n"
 
-  result_str.encode('utf-8') 
+  #result_str.encode('utf-8') 
 
-  return result_str
+  return new_dict
 
 
 def subscribers_count_by_channel_id(client, **kwargs):
@@ -156,6 +165,39 @@ def print_dict(dict):
     print key, value
 
 
+def bio_by_channel_id(client, **kwargs):
+  kwargs = remove_empty_kwargs(**kwargs)
+
+  response = client.channels().list(
+    **kwargs
+  ).execute()
+
+  return response["items"][0]["snippet"]["title"], response["items"][0]["snippet"]["description"]
+
+
+def get_key_data(name_id_dict):
+  """
+  return: key_data- a list of list
+    where each sublist is [name, id, subscriber_count, url, email, bio ]
+  """
+
+  updated_dict = filter_by_subscriber_count(name_id_dict)
+
+  key_data = []
+
+  for youtuber_id, count in updated_dict.items():
+
+    name, bio = bio_by_channel_id(client, part="snippet", id=youtuber_id)
+    url = id_to_channel_url(youtuber_id)
+
+    email= get_emails(bio.lower())
+
+    youtuber_info=[name, youtuber_id, count, url, email , bio]
+    key_data.append(youtuber_info)
+
+  return key_data
+
+
 
 # main program
 
@@ -166,7 +208,7 @@ if __name__ == '__main__':
   client = get_authenticated_service()
 
   next_page_token=''
-  f = codecs.open('test', encoding='utf-8', mode='w')
+  #f = codecs.open('test', encoding='utf-8', mode='w')
   final_result = ''
   name_id_dict = {}
 
@@ -175,7 +217,7 @@ if __name__ == '__main__':
       print(i)
   
       next_page_token = search_list_by_keyword(client,
-        f, 
+        
         name_id_dict,
         part='snippet',
         maxResults=50,
@@ -183,16 +225,20 @@ if __name__ == '__main__':
         pageToken = next_page_token,
         publishedAfter='2018-04-25T00:00:00Z',
         type='video',
-        videoCategoryId=20)
+        videoCategoryId=26)
 
 
   #print(name_id_dict)
 
-  final_result += filter_by_subscriber_count(name_id_dict)
+  #final_result += filter_by_subscriber_count(name_id_dict)
 
-  final_result.encode('utf-8') 
+  #final_result.encode('utf-8') 
 
-  f.write(final_result)
+  #f.write(final_result)
+
+  data = get_key_data(name_id_dict)
+
+  write_values('Sheet1!A69:F', data)
 
 
 
