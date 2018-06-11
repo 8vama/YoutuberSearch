@@ -8,14 +8,14 @@ from oauth2client import file, client, tools
 
 # Setup the Sheets API
 SCOPES = 'https://www.googleapis.com/auth/drive'
-store = file.Storage('credentials.json')
+store = file.Storage('sheets_credentials.json')
 creds = store.get()
 if not creds or creds.invalid:
     flow = client.flow_from_clientsecrets('client_secret.json', SCOPES)
     creds = tools.run_flow(flow, store)
 service = build('sheets', 'v4', http=creds.authorize(Http()))
 
-SPREADSHEET_ID = '1Hc6Us9pXghq0Phl4MCEx-2xxZUTRODBzK_mVpLVQlCY'
+SPREADSHEET_ID = '1bEFilMbsfdIvr0XT84KkE0WtUgCdZAWYhGJQdEAcp1E'
 RANGE_NAME = 'Sheet1!A2:C5'
 value_input_option= 'RAW';
 
@@ -50,3 +50,5 @@ def read_values(range_name):
 
 #if __name__ == '__main__':
 #	write_values(RANGE_NAME)
+
+write_values('Sheet2!A1:G', [["Channel Name","Channel ID","Subscribers Count","Channel url","Email","Category","Description"]])

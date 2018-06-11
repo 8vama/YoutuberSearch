@@ -16,10 +16,18 @@ regex = re.compile(("([a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`"
                     "{|}~-]+)*(@|\sat\s)(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(\.|"
                     "\sdot\s))+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)"))
 
+music_regex = re.compile(("(songs?)|(spotify)|(music\W)|(soundcloud)|(tracks?)"))
+
 def file_to_str(filename):
     """Returns the contents of filename as a string."""
     with open(filename) as f:
         return f.read().lower() # Case is lowered to prevent regex mismatches.
+
+def containsMusic(s):
+
+    return music_regex.search(s)
+
+
 
 def get_emails(s):
     """Returns an iterator of matched emails found in string s."""
@@ -33,7 +41,13 @@ def get_emails(s):
     return result
 
 
+
+#s = "check out the Music "
+#t = s.lower()
+
 #print get_emails("maming@gmail.com, hahah@yahoo.com")
+
+#print containsMusic(t) != None
 
 '''
 if __name__ == '__main__':
